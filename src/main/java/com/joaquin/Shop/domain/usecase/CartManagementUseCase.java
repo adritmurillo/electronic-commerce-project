@@ -7,7 +7,7 @@ import java.util.UUID;
 public interface CartManagementUseCase {
     List<Cart> findAll();
     Cart findById(UUID id);
-    Cart create(Cart cart);
+    Cart create();
     Cart addProduct(UUID cartId, UUID productId);
     Cart removeProduct(UUID cartId, UUID productId);
     void delete(UUID id);

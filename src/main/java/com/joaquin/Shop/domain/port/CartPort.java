@@ -11,4 +11,5 @@ public interface CartPort {
     Optional<Cart> findById(UUID id);
     Cart save(Cart cart);
     void deleteById(UUID id);
+    void delete(Cart cart);
 }

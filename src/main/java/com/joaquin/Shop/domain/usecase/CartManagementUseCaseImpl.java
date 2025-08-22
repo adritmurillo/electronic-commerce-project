@@ -6,11 +6,12 @@ import com.joaquin.Shop.domain.model.Cart;
 import com.joaquin.Shop.domain.model.Product;
 import com.joaquin.Shop.domain.port.CartPort;
 import com.joaquin.Shop.domain.port.ProductPort;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-
+@Service
 public class CartManagementUseCaseImpl implements CartManagementUseCase{
     private final CartPort cartPort;
     private final ProductPort productPort;
@@ -33,7 +34,8 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
     }
 
     @Override
-    public Cart create(Cart cart) {
+    public Cart create() {
+        Cart cart = new Cart();
         return cartPort.save(cart);
     }
 
