@@ -9,6 +9,7 @@ import com.joaquin.Shop.domain.port.ProductPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 @Service
@@ -44,7 +45,15 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
     public Cart addProduct(UUID cartId, UUID productId) {
         Cart cart = cartPort.findById(cartId).orElseThrow(() -> new CartNotFoundException(cartId));
         Product product = productPort.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
-        cart.getProducts().add(product);
+        if (product.getStock() <= 0){
+            throw new IllegalArgumentException("Product out of stock");
+        }
+        if (!cart.getProducts().contains(product)){
+            cart.getProducts().add(product);
+            cart.setTotal(cart.getTotal().add(product.getPrice()));
+            product.setStock(product.getStock() - 1); // Reduce el stock al comprar
+            productPort.save(product); // Actualiza el stock
+        }
         return cartPort.save(cart);
     }
 
@@ -53,7 +62,14 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
     public Cart removeProduct(UUID cartId, UUID productId) {
         Cart cart = cartPort.findById(cartId).orElseThrow(() -> new CartNotFoundException(cartId));
         Product product = productPort.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
-        cart.getProducts().remove(product);
+        if (cart.getProducts().remove(product)){
+            cart.setTotal(cart.getTotal().subtract(product.getPrice()));
+            if (cart.getTotal().compareTo(BigDecimal.ZERO) < 0){
+                cart.setTotal(BigDecimal.ZERO); // Se evita un negativo
+            }
+            product.setStock(product.getStock() + 1); // devuelve el stock que removiste
+            productPort.save(product); //Actualiza stock
+        }
         return cartPort.save(cart);
     }
 
@@ -65,6 +81,4 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
         }
         cartPort.deleteById(id);
     }
-
-
 }

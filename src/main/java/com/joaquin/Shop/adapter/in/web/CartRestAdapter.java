@@ -3,6 +3,7 @@ package com.joaquin.Shop.adapter.in.web;
 import com.joaquin.Shop.domain.exception.CartNotFoundException;
 import com.joaquin.Shop.domain.model.Cart;
 import com.joaquin.Shop.domain.usecase.CartManagementUseCase;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +34,9 @@ public class CartRestAdapter {
     }
 
     @PostMapping("/carts")
-    public ResponseEntity<Cart> create() {
-        Cart cart = cartManagementUseCase.create();
-        return ResponseEntity.status(HttpStatus.CREATED).body(cart);
+    public ResponseEntity<Cart> create(@Valid @RequestBody Cart cart) {
+        Cart createdCart = cartManagementUseCase.create();
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCart);
     }
 
     @PutMapping("/carts/{id}/add-product/{productId}")

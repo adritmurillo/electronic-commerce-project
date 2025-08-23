@@ -7,6 +7,7 @@ import com.joaquin.Shop.domain.exception.ProductNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,8 +34,11 @@ public class ProductManagementUseCaseImpl implements ProductManagementUseCase {
 
     @Override
     public Product create(Product product) {
-        if (productPort.existsBySku(product.getSku())) {
-            throw new ProductAlreadyExistsException(product.getSku());
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <=0){
+            throw new IllegalArgumentException("Price must be greater than 0");
+        }
+        if (product.getStock() < 0){
+            throw new IllegalArgumentException("Stock must be greater than 0");
         }
         return productPort.save(product);
     }

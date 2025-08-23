@@ -1,13 +1,17 @@
 package com.joaquin.Shop.domain.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.GenericGenerator;
 
 import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
-@Table(name = "products")
+@Table(name = "products", uniqueConstraints = {@UniqueConstraint(columnNames = "sku")})
 public class Product {
     @Id
     @GeneratedValue(generator = "uuid2") // Usa generador personalizado
@@ -15,14 +19,24 @@ public class Product {
     @Column(columnDefinition = "BINARY(16)") // Mapea a BINARY(16) en MySQL
     private UUID id;
 
+    @NotNull(message = "SKU cannot be null")
+    @NotEmpty(message = "SKU cannot be empty")
     @Column(nullable = false, unique = true)
     private String sku;
 
+    @NotNull(message = "Name cannot be null")
+    @NotEmpty(message = "Name cannot be empty")
     @Column(nullable = false)
     private String name;
 
     private String description;
+
+    @DecimalMin(value = "0.01", message = "Price must be greater than 0")
+    @Column(nullable = true)
     private BigDecimal price;
+
+    @Min(value = 0, message = "Stock cannot be negative")
+    @Column(nullable = false)
     private int stock;
 
     public Product() {}

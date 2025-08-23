@@ -5,6 +5,7 @@ import com.joaquin.Shop.domain.usecase.ProductManagementUseCase;
 import com.joaquin.Shop.domain.exception.ProductAlreadyExistsException;
 import com.joaquin.Shop.domain.exception.ProductNotFoundException;
 
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,7 +36,7 @@ public class ProductRestAdapter {
     }
 
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody Product product){
+    public ResponseEntity<Product> create(@Valid @RequestBody Product product){
         Product createdProduct = productManagementUseCase.create(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdProduct);
     }
