@@ -10,10 +10,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
 @Service
-public class CartManagementUseCaseImpl implements CartManagementUseCase{
+public class CartManagementUseCaseImpl implements CartManagementUseCase {
     private final CartPort cartPort;
     private final ProductPort productPort;
 
@@ -24,19 +26,31 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
 
     @Override
     @Transactional(readOnly = true)
-    public List<Cart> findAll(){
+    public List<Cart> findAllByUser(UUID userId) {
+        return cartPort.findByUserId(userId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Cart> findAll() {
         return cartPort.findAll();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Cart findById(UUID id){
+    public Cart findById(UUID id) {
         return cartPort.findById(id).orElseThrow(() -> new CartNotFoundException(id));
     }
 
     @Override
-    public Cart create() {
+    @Transactional
+    public Cart create(UUID userId) {
         Cart cart = new Cart();
+        cart.setUserId(userId);
+        cart.setStatus(Cart.Status.OPEN);
+        cart.setTotal(BigDecimal.ZERO);
+        cart.setCreatedAt(LocalDateTime.now());
+        cart.setUpdatedAt(LocalDateTime.now());
         return cartPort.save(cart);
     }
 
@@ -45,15 +59,16 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
     public Cart addProduct(UUID cartId, UUID productId) {
         Cart cart = cartPort.findById(cartId).orElseThrow(() -> new CartNotFoundException(cartId));
         Product product = productPort.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
-        if (product.getStock() <= 0){
+        if (product.getStock() <= 0) {
             throw new IllegalArgumentException("Product out of stock");
         }
-        if (!cart.getProducts().contains(product)){
+        if (!cart.getProducts().contains(product)) {
             cart.getProducts().add(product);
             cart.setTotal(cart.getTotal().add(product.getPrice()));
-            product.setStock(product.getStock() - 1); // Reduce el stock al comprar
-            productPort.save(product); // Actualiza el stock
+            product.setStock(product.getStock() - 1);
+            productPort.save(product);
         }
+        cart.setUpdatedAt(LocalDateTime.now());
         return cartPort.save(cart);
     }
 
@@ -62,21 +77,22 @@ public class CartManagementUseCaseImpl implements CartManagementUseCase{
     public Cart removeProduct(UUID cartId, UUID productId) {
         Cart cart = cartPort.findById(cartId).orElseThrow(() -> new CartNotFoundException(cartId));
         Product product = productPort.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
-        if (cart.getProducts().remove(product)){
+        if (cart.getProducts().remove(product)) {
             cart.setTotal(cart.getTotal().subtract(product.getPrice()));
-            if (cart.getTotal().compareTo(BigDecimal.ZERO) < 0){
-                cart.setTotal(BigDecimal.ZERO); // Se evita un negativo
+            if (cart.getTotal().compareTo(BigDecimal.ZERO) < 0) {
+                cart.setTotal(BigDecimal.ZERO);
             }
-            product.setStock(product.getStock() + 1); // devuelve el stock que removiste
-            productPort.save(product); //Actualiza stock
+            product.setStock(product.getStock() + 1);
+            productPort.save(product);
         }
+        cart.setUpdatedAt(LocalDateTime.now());
         return cartPort.save(cart);
     }
 
     @Override
     @Transactional
     public void delete(UUID id) {
-        if(cartPort.findById(id).isEmpty()) {
+        if (cartPort.findById(id).isEmpty()) {
             throw new CartNotFoundException(id);
         }
         cartPort.deleteById(id);

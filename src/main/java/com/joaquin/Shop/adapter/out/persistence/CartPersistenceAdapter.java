@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 @Component
 public class CartPersistenceAdapter implements CartPort {
     private final CartRepository repository;
@@ -36,9 +37,7 @@ public class CartPersistenceAdapter implements CartPort {
     }
 
     @Override
-    public void delete(Cart cart) {
-        repository.delete(cart);
+    public List<Cart> findByUserId(UUID userId) {
+        return repository.findByUserId(userId);
     }
-
-
 }

@@ -1,10 +1,8 @@
 package com.joaquin.Shop.domain.model;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
-
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -12,34 +10,43 @@ import java.util.UUID;
 @Entity
 @Table(name = "carts")
 public class Cart {
+
     @Id
     @GeneratedValue(generator = "uuid2")
-    @GenericGenerator(name = "uuid2", strategy = "org.hibernate.id.UUIDGenerator")
-    @Column(columnDefinition = "BINARY(16)")
+    @Column(name = "id", columnDefinition = "BINARY(16)")
     private UUID id;
 
-    @ManyToMany
+    @Column(name = "user_id", columnDefinition = "BINARY(16)")
+    private UUID userId;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "cart_products",
-            joinColumns = @JoinColumn(name = "cart_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
+            joinColumns = @JoinColumn(name = "cart_id", columnDefinition = "BINARY(16)"),
+            inverseJoinColumns = @JoinColumn(name = "product_id", columnDefinition = "BINARY(16)")
     )
     private List<Product> products = new ArrayList<>();
 
-    private Integer userId; // Mantenemos Integer por ahora, puedes cambiarlo a UUID si quieres
+    @Column(name = "total")
     private BigDecimal total = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
-    private Status status = Status.OPEN;
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    @Column(name = "status")
+    private Status status;
 
-    public Cart() {}
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
+    // Getters y setters
     public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public UUID getUserId() { return userId; }
+    public void setUserId(UUID userId) { this.userId = userId; }
     public List<Product> getProducts() { return products; }
     public void setProducts(List<Product> products) { this.products = products; }
-    public Integer getUserId() { return userId; }
-    public void setUserId(Integer userId) { this.userId = userId; }
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
     public Status getStatus() { return status; }
@@ -50,6 +57,6 @@ public class Cart {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
     public enum Status {
-        OPEN, PROCESSING, COMPLETED
+        OPEN, CLOSED
     }
 }
